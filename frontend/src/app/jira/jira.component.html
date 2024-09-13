@@ -1,0 +1,28 @@
+<h1>Jira Flow Control</h1>
+
+<h2>Feature Time Tracking</h2>
+
+<form class="sbb-form-group" [formGroup]="formGroup" (ngSubmit)="handleSubmit()">
+    <sbb-form-field label="Feature (SAFe)">
+      <input
+        type="text"
+        sbbInput
+        formControlName="issueKey"
+        autocomplete="off"
+        placeholder="ABC-1234"
+        spellcheck="false"
+      />
+      @if (formGroup.get('issueKey')!.errors?.['required']) {
+        <sbb-error>Issue key is required!</sbb-error>
+      }
+      @if (formGroup.get('issueKey')!.errors?.['minlength']) {
+        <sbb-error>Min length is {{ formGroup.get('issueKey')!.errors?.['minlength']?.requiredLength }}!</sbb-error>
+      }
+    </sbb-form-field>
+    <button sbb-button>Submit</button>
+</form>
+  
+@if (lastSubmission) {
+<h3>{{lastSubmission.issueKey}}</h3>
+<pre>{{ lastSubmission | json }}</pre>
+}

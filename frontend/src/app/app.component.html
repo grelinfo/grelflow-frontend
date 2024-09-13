@@ -5,7 +5,6 @@
   <sbb-icon-sidebar expanded>
     <a
       sbbIconSidebarItem
-      i18n-label
       label="Home"
       routerLink="/"
       routerLinkActive="sbb-active"
@@ -16,7 +15,24 @@
         matrixParams: 'ignored',
       }"
     >
-      <sbb-icon svgIcon="kom:house-small"></sbb-icon>
+      <sbb-icon svgIcon="house-small"></sbb-icon>
+    </a>
+    <a
+      sbbIconSidebarItem
+      label="Jira Flow Control"
+      routerLink="/jira"
+      routerLinkActive="sbb-active"
+      [routerLinkActiveOptions]="{
+        paths: 'exact',
+        fragment: 'ignored',
+        queryParams: 'ignored',
+        matrixParams: 'ignored',
+      }"
+    >
+      <sbb-icon svgIcon="checkpoints-small"></sbb-icon>
+    </a>
+    <a sbbIconSidebarItem label="GitHub" href="https://github.com/grelinfo/grelflow">
+      <sbb-icon svgIcon="github-small"></sbb-icon>
     </a>
   </sbb-icon-sidebar>
   <sbb-icon-sidebar-content role="main" class="app-main-content">
