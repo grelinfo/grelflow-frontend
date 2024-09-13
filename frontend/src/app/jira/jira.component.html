@@ -21,8 +21,5 @@
     </sbb-form-field>
     <button sbb-button>Submit</button>
 </form>
-  
-@if (lastSubmission) {
-<h3>{{lastSubmission.issueKey}}</h3>
-<pre>{{ lastSubmission | json }}</pre>
-}
+
+<p>{{ featureStore.timeTrackingEntities() | json }}</p>
