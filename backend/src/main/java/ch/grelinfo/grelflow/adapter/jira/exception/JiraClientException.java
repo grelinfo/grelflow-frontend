@@ -1,4 +1,4 @@
-package ch.grelinfo.grelflow.jiraclient.exception;
+package ch.grelinfo.grelflow.adapter.jira.exception;
 
 /**
  * Base class for Jira client exceptions.

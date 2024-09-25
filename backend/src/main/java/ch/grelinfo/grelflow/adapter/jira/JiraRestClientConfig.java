@@ -1,10 +1,10 @@
-package ch.grelinfo.grelflow.jiraclient;
+package ch.grelinfo.grelflow.adapter.jira;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 
 @ConfigurationProperties(prefix = "jira")
-public record JiraClientConfig(
+public record JiraRestClientConfig(
     String url,
     String personalAccessToken
 ) {}
