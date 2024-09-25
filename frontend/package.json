@@ -10,6 +10,7 @@
   },
   "private": true,
   "dependencies": {
+    "@angular-architects/ngrx-toolkit": "^18.0.3",
     "@angular/animations": "^18.2.0",
     "@angular/cdk": "^18.0.0",
     "@angular/common": "^18.2.0",

@@ -1,0 +1,32 @@
+<div
+  class="tracking-status-icon sbb-icon-fit"
+  [ngClass]="_iconClass"
+>
+  @switch (type) {
+    @case ('ontrack') {
+      <sbb-icon svgIcon="tick-small"></sbb-icon>
+    }
+    @case ('underspent') {
+      <sbb-icon svgIcon="sign-exclamation-point-small"></sbb-icon>
+    }
+    @case ('overspent') {
+      <sbb-icon svgIcon="circle-cross-small"></sbb-icon>
+    }
+  }
+</div>
+
+@if (showMessage) {
+  <div class="tracking-status-message">
+    @switch (type) {
+      @case ('ontrack') {
+        On track
+      }
+      @case ('underspent') {
+        Underspent
+      }
+      @case ('overspent') {
+        Overspent
+      }
+    }
+  </div>
+}

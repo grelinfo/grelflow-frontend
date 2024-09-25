@@ -1,0 +1,89 @@
+<h1>SAFe Time Tracking</h1>
+
+<h2>Feature</h2>
+
+
+<form class="sbb-form-group" [formGroup]="formGroup" (ngSubmit)="handleSubmit()">
+    <sbb-form-field label="Feature (SAFe)">
+      <input
+        type="text"
+        sbbInput
+        formControlName="id"
+        autocomplete="off"
+        placeholder="ABC-1234"
+        spellcheck="false"
+      />
+      @if (formGroup.get('id')!.errors?.['required']) {
+        <sbb-error>Issue key is required!</sbb-error>
+      }
+      @if (formGroup.get('id')!.errors?.['minlength']) {
+        <sbb-error>Min length is {{ formGroup.get('id')!.errors?.['minlength']?.requiredLength }}!</sbb-error>
+      }
+    </sbb-form-field>
+    <button sbb-button>Submit</button>
+    <button type="button" sbb-button (click)="refreshAll()">
+      <sbb-icon svgIcon="arrows-circle-small"></sbb-icon>
+    </button>
+    <button type="button" sbb-button (click)="removeAll()">
+      <sbb-icon svgIcon="cross-small"></sbb-icon>
+    </button>
+</form>
+
+
+<h3>Features</h3>
+
+<table sbb-table [dataSource]="dataSource()">
+  <ng-container sbbColumnDef="id">
+    <th sbb-header-cell *sbbHeaderCellDef>ID</th>
+    <td sbb-cell *sbbCellDef="let feature">{{ feature.id }}</td>
+  </ng-container>
+  <ng-container sbbColumnDef="status">
+    <th sbb-header-cell *sbbHeaderCellDef>Status</th>
+    <td sbb-cell *sbbCellDef="let feature">{{ feature.status | workItemStatus }}</td>
+  </ng-container>
+  <ng-container sbbColumnDef="budgetTrackingStatus">
+    <th sbb-header-cell *sbbHeaderCellDef>Budget Status</th>
+    <td sbb-cell *sbbCellDef="let feature">
+      <tracking-status [type]="feature.budgetTracking.status"></tracking-status>
+    </td>
+  </ng-container>
+  <ng-container sbbColumnDef="budgetUsagePercentage">
+    <th sbb-header-cell *sbbHeaderCellDef>Budget Usage</th>
+    <td sbb-cell *sbbCellDef="let feature">
+      {{ feature.budgetTracking.budgetUsagePercentage }}%
+    </td>
+  </ng-container>
+  <ng-container sbbColumnDef="timeTrackingStatus">
+    <th sbb-header-cell *sbbHeaderCellDef>Time Status</th>
+    <td sbb-cell *sbbCellDef="let feature">
+      <tracking-status [type]="feature.timeTracking.status"></tracking-status>
+    </td>
+  </ng-container>
+  <ng-container sbbColumnDef="completionPercentage">
+    <th sbb-header-cell *sbbHeaderCellDef>Completion</th>
+    <td sbb-cell *sbbCellDef="let feature">
+      {{ feature.timeTracking.completionPercentage }}%
+    </td>
+  </ng-container>
+  <ng-container sbbColumnDef="recordTimestamp">
+    <th sbb-header-cell *sbbHeaderCellDef>Recorded at</th>
+    <td sbb-cell *sbbCellDef="let feature">{{ feature.recordedTimestamp | date:'short' }}</td>
+  </ng-container>
+  <ng-container sbbColumnDef="actions">
+    <th sbb-header-cell *sbbHeaderCellDef>Actions</th>
+    <td sbb-cell *sbbCellDef="let feature">
+      <button type="button" sbb-button (click)="refresh(feature.id)">
+        <sbb-icon svgIcon="arrows-circle-small"></sbb-icon>
+      </button>
+      &nbsp;
+      <button type="button" sbb-button (click)="remove(feature.id)">
+        <sbb-icon svgIcon="cross-small"></sbb-icon>
+      </button>
+    </td>
+  </ng-container>
+
+  <tr sbb-header-row *sbbHeaderRowDef="displayedColumns"></tr>
+  <tr sbb-row *sbbRowDef="let row; columns: displayedColumns"></tr>
+</table>
+
+

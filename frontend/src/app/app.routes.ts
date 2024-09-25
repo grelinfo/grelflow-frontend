@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-
 export const routes: Routes = [
     {
         path: '',
@@ -11,11 +10,11 @@ export const routes: Routes = [
         ],
     },
     {
-        path: 'jira',
+        path: 'safe-time-tracking/features',
         children: [
             {
                 path: '',
-                loadComponent: () => import('./jira/jira.component').then((m) => m.JiraComponent),
+                loadComponent: () => import('./safe-time-tracking/feature-list/feature-list.component').then((m) => m.FeatureListComponent),
             },
         ],
     }

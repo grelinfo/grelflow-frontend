@@ -1,0 +1,43 @@
+@use '@sbb-esta/angular' as sbb;
+
+.tracking-status {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--sbb-font-size);
+  line-height: var(--sbb-line-height);
+  vertical-align: middle;
+}
+
+.tracking-status-icon {
+  width: var(--sbb-icon-size-default);
+  height: var(--sbb-icon-size-default);
+  border-radius: var(--sbb-border-radius);
+  color: var(--sbb-color-white);
+}
+
+// Variant for .tracking-status-icon
+.tracking-status-icon-ontrack {
+  background-color: var(--sbb-color-green);
+}
+
+// Variant for .tracking-status-icon
+.tracking-status-icon-underspent {
+  color: var(--sbb-color-black);
+  background-color: var(--sbb-color-peach);
+}
+
+// Variant for .tracking-status-icon
+.tracking-status-icon-overspent {
+  background-color: var(--sbb-color-red);
+}
+
+.tracking-status-message {
+  background-color: var(--tracking-status-message-background-color);
+  color: var(--tracking-status-message-color);
+  line-height: calc(#{sbb.pxToRem(20)} * var(--sbb-scaling-factor));
+  font-family: var(--sbb-font-roman);
+  margin-left: calc(#{sbb.pxToRem(8)} * var(--sbb-scaling-factor));
+  padding: calc(#{sbb.pxToRem(1)} * var(--sbb-scaling-factor))
+    calc(#{sbb.pxToRem(8)} * var(--sbb-scaling-factor))
+    calc(#{sbb.pxToRem(3)} * var(--sbb-scaling-factor));
+}

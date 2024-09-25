@@ -4,14 +4,18 @@ import ch.grelinfo.grelflow.adapter.jira.JiraRestClientConfig;
 import ch.grelinfo.grelflow.safetimetracking.SafeTimeTrackingConfig;
 import java.util.Set;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
 @EnableConfigurationProperties({JiraRestClientConfig.class, SafeTimeTrackingConfig.class})
-@ComponentScan(basePackages = "ch.grelinfo.grelflow.safetimetracking")
-@ComponentScan(basePackages = "ch.grelinfo.grelflow.adapter.jira")
+@ComponentScan(basePackages = {
+	"ch.grelinfo.grelflow.safetimetracking",
+	"ch.grelinfo.grelflow.adapter.jira",
+	"ch.grelinfo.grelflow.application"
+})
 public class GrelflowApplication {
 
 	public static void main(String[] args) {

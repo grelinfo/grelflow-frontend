@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { JiraComponent } from './jira.component';
+import { FeatureListComponent } from './feature-list.component';
 
-describe('JiraComponent', () => {
-  let component: JiraComponent;
-  let fixture: ComponentFixture<JiraComponent>;
+describe('FeatureListComponent', () => {
+  let component: FeatureListComponent;
+  let fixture: ComponentFixture<FeatureListComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [JiraComponent]
+      imports: [FeatureListComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(JiraComponent);
+    fixture = TestBed.createComponent(FeatureListComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
