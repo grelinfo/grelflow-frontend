@@ -46,7 +46,7 @@ public class SafeFeatureTimeTrackingRepository {
     }
 
     private Mono<List<Issue>> findWorkItemIssues(String featureKey) {
-        return jiraIssueApi.searchIssues(String.format(JQL_CHILD_ISSUES, featureKey), Set.of(IssueMapper.ISSUETYPE, IssueMapper.TIMETRACKING, IssueMapper.STORYPOINTS, IssueMapper.STATUS))
+        return jiraIssueApi.searchIssues(String.format(JQL_CHILD_ISSUES, featureKey), Set.of(IssueMapper.ISSUETYPE, IssueMapper.TIMETRACKING, IssueMapper.STORYPOINTS, IssueMapper.STATUS, IssueMapper.SUMMARY))
             .map(SearchResults::issues);
     }
 
