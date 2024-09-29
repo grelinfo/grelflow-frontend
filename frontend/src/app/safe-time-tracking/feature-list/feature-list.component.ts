@@ -6,11 +6,11 @@ import { SbbFormFieldModule } from '@sbb-esta/angular/form-field';
 import { SbbInputModule } from '@sbb-esta/angular/input';
 import { SbbIcon } from '@sbb-esta/angular/icon';
 import { FeatureStore } from '../shared/feature.store';
-import { FeatureService } from '../shared/feature.service';
 import { SbbTableModule } from '@sbb-esta/angular/table';
-import { TrackingStatusComponent } from '../tracking-status/tracking-status.component';
+import { TrackingStatusComponent } from '../shared/tracking-status/tracking-status.component';
 import { WorkItemStatusPipe } from '../shared/feature.pipe';
-
+import { OnInit } from '@angular/core';
+import { WorkItemStatusComponent } from '../shared/work-item-status/work-item-status.component';
 
 @Component({
   selector: 'app-feature-list',
@@ -26,50 +26,37 @@ import { WorkItemStatusPipe } from '../shared/feature.pipe';
     JsonPipe,
     CommonModule,
     TrackingStatusComponent,
-    WorkItemStatusPipe
+    WorkItemStatusPipe,
+    WorkItemStatusComponent
 ],
   providers: [FeatureStore],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './feature-list.component.html',
   styleUrl: './feature-list.component.scss'
 })
-export class FeatureListComponent {
+export class FeatureListComponent implements OnInit {
   readonly featureStore = inject(FeatureStore);
   private _formBuilder = inject(FormBuilder);
-  private FeatureService = inject(FeatureService);
-
-  displayedColumns: string[] = ['id', 'status',  'budgetTrackingStatus', 'budgetUsagePercentage', 'timeTrackingStatus', 'completionPercentage', 'recordTimestamp', 'actions',];
 
   formGroup = this._formBuilder.group({
     id: ['', [Validators.required, Validators.minLength(3)]],
   });
 
   dataSource = this.featureStore.entities;
+  displayedColumns: string[] = ['id', 'name', 'status',  'budgetTrackingStatus', 'budgetUsagePercentage', 'timeTrackingStatus', 'completionPercentage', 'actions', 'recordedTimestamp'];
 
-  remove(id: string) {
+
+  remove(id: string):void {
     this.featureStore.remove(id);
   }
-  refresh(id: string) {
-    const featureTimeTracking = this.FeatureService.get(id);
-
-    featureTimeTracking.subscribe((data) => {
-      this.featureStore.set(data);
-    });
+  refresh(id: string):void {
+    this.featureStore.refresh(id);
   }
-
-  refreshAll() {
-    this.featureStore.entities().forEach((feature) => {
-      const featureTimeTracking = this.FeatureService.get(feature.id);
-      featureTimeTracking.subscribe((data) => {
-        this.featureStore.set(data);
-      });
-    });
+  refreshAll():void {
+    this.featureStore.refreshAll();
   }
-
-  removeAll() {
-    this.featureStore.entities().forEach((feature) => {
-      this.featureStore.remove(feature.id);
-    });
+  removeAll():void {
+    this.featureStore.removeAll();
   }
 
   handleSubmit() {
@@ -81,12 +68,10 @@ export class FeatureListComponent {
       return;
     }
 
-    const featureTimeTracking = this.FeatureService.get(id);
+    this.featureStore.load(id);    
+  }
 
-
-    featureTimeTracking.subscribe((data) => {
-      this.featureStore.add(data);
-    });
-    
+  ngOnInit() {
+    this.refreshAll();
   }
 }

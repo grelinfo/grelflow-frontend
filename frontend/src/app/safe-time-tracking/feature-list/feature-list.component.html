@@ -1,7 +1,6 @@
-<h1>SAFe Time Tracking</h1>
 
-<h2>Feature</h2>
-
+<div class="feature-list">
+<h2 class="sbb-divider-thin-top sbb-divider-small-bottom">SAFe Time Tracking / Feature</h2>
 
 <form class="sbb-form-group" [formGroup]="formGroup" (ngSubmit)="handleSubmit()">
     <sbb-form-field label="Feature (SAFe)">
@@ -29,17 +28,20 @@
     </button>
 </form>
 
-
-<h3>Features</h3>
+<h3 class="section-title branches">Features</h3>
 
 <table sbb-table [dataSource]="dataSource()">
   <ng-container sbbColumnDef="id">
     <th sbb-header-cell *sbbHeaderCellDef>ID</th>
     <td sbb-cell *sbbCellDef="let feature">{{ feature.id }}</td>
   </ng-container>
+  <ng-container sbbColumnDef="name">
+    <th sbb-header-cell *sbbHeaderCellDef>Name</th>
+    <td sbb-cell *sbbCellDef="let feature">{{ feature.name }}</td>
+  </ng-container>
   <ng-container sbbColumnDef="status">
     <th sbb-header-cell *sbbHeaderCellDef>Status</th>
-    <td sbb-cell *sbbCellDef="let feature">{{ feature.status | workItemStatus }}</td>
+    <td sbb-cell *sbbCellDef="let feature"><work-item-status [type]="feature.status"></work-item-status></td>
   </ng-container>
   <ng-container sbbColumnDef="budgetTrackingStatus">
     <th sbb-header-cell *sbbHeaderCellDef>Budget Status</th>
@@ -65,20 +67,21 @@
       {{ feature.timeTracking.completionPercentage }}%
     </td>
   </ng-container>
-  <ng-container sbbColumnDef="recordTimestamp">
+  <ng-container sbbColumnDef="recordedTimestamp">
     <th sbb-header-cell *sbbHeaderCellDef>Recorded at</th>
     <td sbb-cell *sbbCellDef="let feature">{{ feature.recordedTimestamp | date:'short' }}</td>
   </ng-container>
   <ng-container sbbColumnDef="actions">
     <th sbb-header-cell *sbbHeaderCellDef>Actions</th>
-    <td sbb-cell *sbbCellDef="let feature">
-      <button type="button" sbb-button (click)="refresh(feature.id)">
+    <td sbb-cell *sbbCellDef="let feature" class="table-actions">
+      <div>
+      <button type="button" sbb-secondary-button (click)="refresh(feature.id)" title="Refresh feature">
         <sbb-icon svgIcon="arrows-circle-small"></sbb-icon>
       </button>
-      &nbsp;
-      <button type="button" sbb-button (click)="remove(feature.id)">
-        <sbb-icon svgIcon="cross-small"></sbb-icon>
+      <button type="button" sbb-secondary-button (click)="remove(feature.id)" title="Exclude feature from this listing">
+        <sbb-icon svgIcon="circle-cross-small"></sbb-icon>
       </button>
+    </div>
     </td>
   </ng-container>
 
@@ -87,3 +90,4 @@
 </table>
 
 
+</div>

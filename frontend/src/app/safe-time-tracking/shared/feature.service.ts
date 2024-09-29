@@ -12,7 +12,7 @@ export class FeatureService {
 
   constructor(private http: HttpClient) {}
 
-  get(id: string): Observable<Feature> {
+  fetch(id: string): Observable<Feature> {
     return this.http.get<Feature>(`${this.baseUrl}/${id}`);
   }
 }
