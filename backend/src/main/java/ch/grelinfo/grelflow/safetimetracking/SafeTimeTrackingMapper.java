@@ -52,6 +52,7 @@ public final class SafeTimeTrackingMapper {
         return new Feature(
             featureIssue.key(),
             OffsetDateTime.now(),
+            IssueMapper.getSummary(featureIssue).orElseThrow(() -> new IllegalArgumentException("Jira issue has no summary")),
             featureStatus,
             calculateFeatureBudgetTracking(featureIssue, featureStatus, workItemsTimeTracking),
             calculateFeatureTimeTracking(featureIssue, featureStatus, workItemsTimeTracking),
@@ -70,6 +71,7 @@ public final class SafeTimeTrackingMapper {
         return new Feature(
             featureIssue.key(),
             OffsetDateTime.now(),
+            IssueMapper.getSummary(featureIssue).orElseThrow(() -> new IllegalArgumentException("Jira issue has no summary")),
             featureStatus,
             calculateFeatureBudgetTracking(featureIssue, featureStatus, workItemsTimeTracking),
             calculateFeatureTimeTracking(featureIssue, featureStatus, workItemsTimeTracking),
