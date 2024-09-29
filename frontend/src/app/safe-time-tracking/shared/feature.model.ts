@@ -46,6 +46,7 @@ interface WorkItem {
 interface Feature {
   id: string;
   recordedTimestamp: string; // ISO 8601 datetime
+  name?: string;
   status: WorkItemStatus;
   budgetTracking: BudgetTracking;
   timeTracking: TimeTracking;
