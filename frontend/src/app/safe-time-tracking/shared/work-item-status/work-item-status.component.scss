@@ -1,0 +1,41 @@
+@use '@sbb-esta/angular' as sbb;
+
+.work-item-status {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--sbb-font-size);
+  line-height: var(--sbb-line-height);
+  vertical-align: middle;
+}
+
+.work-item-status-icon {
+  width: var(--sbb-icon-size-default);
+  height: var(--sbb-icon-size-default);
+  border-radius: var(--sbb-border-radius);
+}
+
+// Variant for .work-item-status-icon
+.work-item-status-icon-open {
+  color: var(--sbb-color-green);
+}
+
+// Variant for .work-item-status-icon
+.work-item-status-icon-inprogress {
+  color: var(--sbb-color-sky);
+}
+
+// Variant for .work-item-status-icon
+.work-item-status-icon-done {
+  color: var(--sbb-color-green);
+}
+
+.work-item-status-message {
+  background-color: var(--work-item-status-message-background-color);
+  color: var(--work-item-status-message-color);
+  line-height: calc(#{sbb.pxToRem(20)} * var(--sbb-scaling-factor));
+  font-family: var(--sbb-font-roman);
+  margin-left: calc(#{sbb.pxToRem(8)} * var(--sbb-scaling-factor));
+  padding: calc(#{sbb.pxToRem(1)} * var(--sbb-scaling-factor))
+    calc(#{sbb.pxToRem(8)} * var(--sbb-scaling-factor))
+    calc(#{sbb.pxToRem(3)} * var(--sbb-scaling-factor));
+}

@@ -1,0 +1,25 @@
+.table-actions {
+  width: 115px;
+
+  button {
+    margin-right: 5px;
+  }
+
+  button:last-child {
+    margin-right: 0;
+  }
+}
+
+.section-title {
+  margin-top: 30px;
+  border-bottom: 1px solid var(--sbb-color-aluminum);
+  margin-bottom: 15px;
+
+  .sbb-loading-indicator-small {
+    margin-left: 30px;
+  }
+
+  &.branches {
+    margin-top: 15px;
+  }
+}

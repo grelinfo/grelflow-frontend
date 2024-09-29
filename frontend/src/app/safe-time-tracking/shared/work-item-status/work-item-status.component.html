@@ -1,0 +1,12 @@
+<div
+  class="work-item-status-icon sbb-icon-fit"
+  [ngClass]="iconClass()"
+>
+  <sbb-icon [svgIcon]="svgIcon()"></sbb-icon>
+</div>
+
+@if (message()) {
+  <div class="work-item-status-message">
+    {{ message() }}
+  </div>
+}
