@@ -19,8 +19,10 @@ public class SafeTimeTrackingRouter {
     @Bean
     public RouterFunction<ServerResponse> featureTimeTrackingRoutes(SafeTimeTrackingHandler featureTimeTrackingHandler) {
         return route()
-            .GET("api/v1/featureTimeTracking/{featureKey}", ACCEPT_JSON, featureTimeTrackingHandler::getFeatureTimeTracking,
-                ops -> ops.beanClass(SafeFeatureTimeTrackingRepository.class).beanMethod("findFeatureTimeTracking").tag("Feature"))
+            .GET("api/v1/featureTimeTracking/{id}", ACCEPT_JSON, featureTimeTrackingHandler::getFeature,
+                ops -> ops.beanClass(SafeFeatureTimeTrackingRepository.class).beanMethod("find").tag("Feature"))
+            .GET("api/v1/featureTimeTrackings", ACCEPT_JSON, featureTimeTrackingHandler::getFeatures,
+                ops -> ops.beanClass(SafeFeatureTimeTrackingRepository.class).beanMethod("findIds").tag("Feature"))
             .build();
     }
 }

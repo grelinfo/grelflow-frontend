@@ -41,35 +41,37 @@
   </ng-container>
   <ng-container sbbColumnDef="status">
     <th sbb-header-cell *sbbHeaderCellDef>Status</th>
-    <td sbb-cell *sbbCellDef="let feature"><work-item-status [type]="feature.status"></work-item-status></td>
+    <td sbb-cell *sbbCellDef="let feature"><work-item-status [type]="feature.status"></work-item-status><td>
   </ng-container>
-  <ng-container sbbColumnDef="budgetTrackingStatus">
-    <th sbb-header-cell *sbbHeaderCellDef>Budget Status</th>
+  <ng-container sbbColumnDef="timeTrackingOriginalEstimate">
+    <th sbb-header-cell *sbbHeaderCellDef>Estimate</th>
     <td sbb-cell *sbbCellDef="let feature">
-      <tracking-status [type]="feature.budgetTracking.status"></tracking-status>
+      {{ feature.timeTracking.originalEstimateSeconds / 3600 / 8 }} days
     </td>
   </ng-container>
-  <ng-container sbbColumnDef="budgetUsagePercentage">
-    <th sbb-header-cell *sbbHeaderCellDef>Budget Usage</th>
-    <td sbb-cell *sbbCellDef="let feature">
-      {{ feature.budgetTracking.budgetUsagePercentage }}%
-    </td>
-  </ng-container>
-  <ng-container sbbColumnDef="timeTrackingStatus">
-    <th sbb-header-cell *sbbHeaderCellDef>Time Status</th>
+  <ng-container sbbColumnDef="timeTrackingActual">
+    <th sbb-header-cell *sbbHeaderCellDef>Actual</th>
     <td sbb-cell *sbbCellDef="let feature">
       <tracking-status [type]="feature.timeTracking.status"></tracking-status>
+      {{ feature.timeTracking.usagePercentage }}%
     </td>
   </ng-container>
-  <ng-container sbbColumnDef="completionPercentage">
+  <ng-container sbbColumnDef="timeTrackingEstimate">
+    <th sbb-header-cell *sbbHeaderCellDef>Estimated</th>
+    <td sbb-cell *sbbCellDef="let feature">
+      <tracking-status [type]="feature.timeTracking.estimatedStatus"></tracking-status>
+      {{ feature.timeTracking.estimatedUsagePercentage }}%
+    </td>
+  </ng-container>
+  <ng-container sbbColumnDef="completion">
     <th sbb-header-cell *sbbHeaderCellDef>Completion</th>
     <td sbb-cell *sbbCellDef="let feature">
-      {{ feature.timeTracking.completionPercentage }}%
+      {{ feature.timeTracking.estimatedCompletionPercentage }}%
     </td>
   </ng-container>
   <ng-container sbbColumnDef="recordedTimestamp">
     <th sbb-header-cell *sbbHeaderCellDef>Recorded at</th>
-    <td sbb-cell *sbbCellDef="let feature">{{ feature.recordedTimestamp | date:'short' }}</td>
+    <td sbb-cell *sbbCellDef="let feature">{{ feature.recordedTimestamp | date: 'dd.MM.YYYY HH:mm:ss' }}</td>
   </ng-container>
   <ng-container sbbColumnDef="actions">
     <th sbb-header-cell *sbbHeaderCellDef>Actions</th>

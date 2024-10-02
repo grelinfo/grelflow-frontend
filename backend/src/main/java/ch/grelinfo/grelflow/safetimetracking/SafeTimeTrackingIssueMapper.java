@@ -2,7 +2,6 @@ package ch.grelinfo.grelflow.safetimetracking;
 
 import ch.grelinfo.grelflow.adapter.jira.IssueMapper;
 import ch.grelinfo.grelflow.adapter.jira.model.Issue;
-import ch.grelinfo.grelflow.safetimetracking.model.BudgetTracking;
 import ch.grelinfo.grelflow.safetimetracking.model.Feature;
 import ch.grelinfo.grelflow.safetimetracking.model.TimeTracking;
 import ch.grelinfo.grelflow.safetimetracking.model.TimeTrackingData;
@@ -15,7 +14,6 @@ import ch.grelinfo.grelflow.safetimetracking.model.WorkItem;
 import ch.grelinfo.grelflow.safetimetracking.model.WorkItemStatus;
 import ch.grelinfo.grelflow.safetimetracking.model.WorkItemType;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +40,7 @@ public final class SafeTimeTrackingIssueMapper {
         this.config = config;
     }
 
-    public Feature convertToFeatureTimeTracking(Issue featureIssue, List<TimeTrackingData> workItemsTimeTrackingData) {
+    public Feature convertToFeatureTimeTracking(Issue featureIssue, Stream<TimeTrackingData> workItemsTimeTrackingData) {
 
         List<String> warnings = new ArrayList<>();
         WorkItemStatus featureStatus = getWorkItemStatus(featureIssue);
@@ -53,27 +51,26 @@ public final class SafeTimeTrackingIssueMapper {
             OffsetDateTime.now(),
             IssueMapper.getSummary(featureIssue).orElseThrow(() -> new IllegalArgumentException("Jira issue has no summary")),
             featureStatus,
-            calculateFeatureBudgetTracking(featureIssue, featureStatus, workItemsTimeTracking),
-            calculateFeatureTimeTracking(featureIssue, featureStatus, workItemsTimeTracking),
+            mapFeatureTimeTracking(featureIssue, featureStatus, workItemsTimeTracking),
             null,
             warnings // TODO add more warnings
         );
     }
 
-    public Feature convertToFeatureTimeTrackingWithWorkItems(Issue featureIssue, List<WorkItem> workItems) {
+    public Feature convertToFeatureTimeTrackingWithWorkItems(Issue featureIssue, Stream<WorkItem> workItems) {
 
         List<String> warnings = new ArrayList<>();
         WorkItemStatus featureStatus = getWorkItemStatus(featureIssue);
-        TimeTrackingData workItemsTimeTracking = calculateWorkItemTotalTimeTracking(workItems);
+        List<WorkItem> workItemsList = workItems.toList();
+        TimeTrackingData workItemsTimeTracking = calculateWorkItemTotalTimeTracking(workItemsList);
 
         return new Feature(
             featureIssue.key(),
             OffsetDateTime.now(),
             IssueMapper.getSummary(featureIssue).orElseThrow(() -> new IllegalArgumentException("Jira issue has no summary")),
             featureStatus,
-            calculateFeatureBudgetTracking(featureIssue, featureStatus, workItemsTimeTracking),
-            calculateFeatureTimeTracking(featureIssue, featureStatus, workItemsTimeTracking),
-            workItems,
+            mapFeatureTimeTracking(featureIssue, featureStatus, workItemsTimeTracking),
+            workItemsList,
             warnings // TODO add more warnings
         );
     }
@@ -82,26 +79,25 @@ public final class SafeTimeTrackingIssueMapper {
 
         List<String> warnings = new ArrayList<>();
         WorkItemStatus workItemStatus = getWorkItemStatus(issue);
+        WorkItemType workItemType = getWorkItemType(issue);
 
         return new WorkItem(
             issue.key(),
-            getWorkItemType(issue),
+            workItemType,
             workItemStatus,
-            workItemTimeTrackingBuilder(issue, workItemStatus).doOnWarning(warnings::add).build(),
+            workItemTimeTrackingBuilder(issue, workItemStatus, workItemType).doOnWarning(warnings::add).build(),
             warnings
         );
     }
 
     public TimeTrackingData convertToTimeTrackingData(Issue issue) {
-        return workItemTimeTrackingBuilder(issue, getWorkItemStatus(issue)).data();
-    }
-    public TimeTrackingData convertToTimeTrackingData(Issue issue, WorkItemStatus workItemStatus) {
-        return workItemTimeTrackingBuilder(issue, workItemStatus).data();
+        return workItemTimeTrackingBuilder(issue, getWorkItemStatus(issue), getWorkItemType(issue)).data();
     }
 
-    private TimeTrackingBuilder workItemTimeTrackingBuilder(Issue workItemIssue, WorkItemStatus workItemStatus) {
+    private TimeTrackingBuilder workItemTimeTrackingBuilder(Issue workItemIssue, WorkItemStatus workItemStatus, WorkItemType workItemType) {
 
         TimeTrackingBuilder timeTrackingBuilder = new TimeTrackingBuilder()
+            .setWorkItemType(workItemType)
             .setWorkItemStatus(workItemStatus)
             .setStoryPointsToSecondsFactor(config.storyPointsToSecondsFactor())
             .setAllowedTimeDeviationPercentage(config.allowedTimeDeviationPercentage());
@@ -111,37 +107,25 @@ public final class SafeTimeTrackingIssueMapper {
         IssueMapper.getTimeTrackingField(workItemIssue).ifPresent(jiraTimeTrackingField -> {
             timeTrackingBuilder
                 .setPlannedTimeSeconds(jiraTimeTrackingField.originalEstimateSeconds())
-                .setRemainingTimeSeconds(jiraTimeTrackingField.remainingEstimateSeconds())
+                .setRemainingEstimateSeconds(jiraTimeTrackingField.remainingEstimateSeconds())
                 .setTimeSpentSeconds(jiraTimeTrackingField.timeSpentSeconds());
         });
         return timeTrackingBuilder;
     }
 
-    public TimeTracking calculateFeatureTimeTracking(Issue featureIssue, WorkItemStatus featureStatus, TimeTrackingData workItemsTimeTracking) {
+
+    private TimeTracking mapFeatureTimeTracking(Issue featureIssue, WorkItemStatus featureStatus, TimeTrackingData workItemsTimeTracking) {
         TimeTrackingBuilder timeTrackingBuilder = new TimeTrackingBuilder()
+            .setWorkItemType(WorkItemType.FEATURE)
             .setStoryPointsToSecondsFactor(config.storyPointsToSecondsFactor())
             .setAllowedTimeDeviationPercentage(config.allowedTimeDeviationPercentage())
             .setWorkItemStatus(featureStatus)
-            .setRemainingTimeSeconds(workItemsTimeTracking.remainingTimeSeconds())
-            .setTimeSpentSeconds(workItemsTimeTracking.spentTimeSeconds())
-            .setPlannedTimeSeconds(workItemsTimeTracking.plannedTimeSeconds());
+            .setRemainingEstimateSeconds(workItemsTimeTracking.remainingEstimateSeconds())
+            .setTimeSpentSeconds(workItemsTimeTracking.timeSpentSeconds());
 
         IssueMapper.getStoryPoints(featureIssue).ifPresent(timeTrackingBuilder::setStoryPoints);
 
         return timeTrackingBuilder.build();
-    }
-
-    private BudgetTracking calculateFeatureBudgetTracking(Issue featureIssue, WorkItemStatus featureStatus, TimeTrackingData workItemsTimeTracking) {
-        BudgetTrackingBuilder budgetTrackingBuilder = new BudgetTrackingBuilder()
-            .setStoryPointsToSecondsFactor(config.storyPointsToSecondsFactor())
-            .setAllowedBudgetDeviationPercentage(config.allowedBudgetDeviationPercentage())
-            .setWorkItemStatus(featureStatus)
-            .setRemainingTimeSeconds(workItemsTimeTracking.remainingTimeSeconds())
-            .setTimeSpentSeconds(workItemsTimeTracking.spentTimeSeconds());
-
-        IssueMapper.getStoryPoints(featureIssue).ifPresent(budgetTrackingBuilder::setStoryPoints);
-
-        return budgetTrackingBuilder.build();
     }
 
 
@@ -170,14 +154,14 @@ public final class SafeTimeTrackingIssueMapper {
     private static TimeTrackingData addTimeTrackingData(
         TimeTrackingDataInterface timeTrackingData1, TimeTrackingDataInterface timeTrackingData2) {
         return new TimeTrackingData(
-            timeTrackingData1.plannedTimeSeconds() + timeTrackingData2.plannedTimeSeconds(),
-            timeTrackingData1.spentTimeSeconds() + timeTrackingData2.spentTimeSeconds(),
-            timeTrackingData1.remainingTimeSeconds() + timeTrackingData2.remainingTimeSeconds()
+            timeTrackingData1.originalEstimateSeconds() + timeTrackingData2.originalEstimateSeconds(),
+            timeTrackingData1.timeSpentSeconds() + timeTrackingData2.timeSpentSeconds(),
+            timeTrackingData1.remainingEstimateSeconds() + timeTrackingData2.remainingEstimateSeconds()
         );
     }
 
-    private static TimeTrackingData calculateTotalTimeTracking(List<TimeTrackingData> timeTrackings) {
-        return timeTrackings.stream().reduce(
+    private static TimeTrackingData calculateTotalTimeTracking(Stream<TimeTrackingData> timeTrackings) {
+        return timeTrackings.reduce(
             new TimeTrackingData(0, 0, 0),
             SafeTimeTrackingIssueMapper::addTimeTrackingData
         );

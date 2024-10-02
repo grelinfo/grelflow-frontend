@@ -18,21 +18,15 @@ export enum WorkItemType {
   UNKNOWN = "Unknown"
 }
 
-interface BudgetTracking {
-  status: TrackingStatus;
-  budgetUsagePercentage: number;
-  budgetDeviationPercentage: number;
-  budgetSeconds: number;
-  budgetRemainingSeconds: number;
-}
-
 interface TimeTracking {
   status: TrackingStatus;
-  completionPercentage: number;
-  plannedUsagePercentage: number;
-  plannedTimeSeconds: number;
-  spentTimeSeconds: number;
-  remainingTimeSeconds: number;
+  usagePercentage: number;
+  originalEstimateSeconds: number;
+  remainingEstimateSeconds: number;
+  timeSpentSeconds: number;
+  estimatedStatus?: TrackingStatus;
+  estimatedCompletionPercentage?: number;
+  estimatedUsagePercentage?: number;
 }
 
 interface WorkItem {
@@ -48,7 +42,6 @@ interface Feature {
   recordedTimestamp: string; // ISO 8601 datetime
   name?: string;
   status: WorkItemStatus;
-  budgetTracking: BudgetTracking;
   timeTracking: TimeTracking;
   workItems?: WorkItem[];
   warnings?: string[];

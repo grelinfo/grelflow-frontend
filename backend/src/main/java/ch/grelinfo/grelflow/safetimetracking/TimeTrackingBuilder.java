@@ -1,25 +1,32 @@
 package ch.grelinfo.grelflow.safetimetracking;
 
-import ch.grelinfo.grelflow.safetimetracking.model.TimeTrackingData;
 import ch.grelinfo.grelflow.safetimetracking.model.TimeTracking;
-import ch.grelinfo.grelflow.safetimetracking.model.TimeTrackingDataInterface;
+import ch.grelinfo.grelflow.safetimetracking.model.TimeTrackingData;
 import ch.grelinfo.grelflow.safetimetracking.model.TrackingStatus;
 import ch.grelinfo.grelflow.safetimetracking.model.WorkItemStatus;
+import ch.grelinfo.grelflow.safetimetracking.model.WorkItemType;
 import java.util.List;
 import java.util.function.Consumer;
 
 public class TimeTrackingBuilder {
 
-    private static final List<Float> MODIFIED_FIBONACCI = List.of(0.0f, 0.5f, 1.0f, 2.0f, 3.0f, 5.0f, 8.0f, 13.0f, 20.0f, 40.0f, 100.0f);
 
+    private static final List<Float> STORY_POINT_FIBONACCI_SERIES = List.of(0.0f, 0.5f, 1.0f, 2.0f, 3.0f, 5.0f, 8.0f, 13.0f, 20.0f, 40.0f, 100.0f);
+
+    private WorkItemType workItemType;
     private Integer storyPointsToSecondsFactor;
     private Integer allowedTimeDeviationPercentage;
     private WorkItemStatus workItemStatus;
     private Float storyPoints;
     private Integer plannedTimeSeconds;
-    private Integer remainingTimeSeconds;
+    private Integer remainingEstimateSeconds;
     private Integer timeSpentSeconds;
     private Consumer<String> warningConsumer;
+
+    public TimeTrackingBuilder setWorkItemType(WorkItemType workItemType) {
+        this.workItemType = mapIfEmptyOrThrow(this.workItemType, workItemType, "workItemType");
+        return this;
+    }
 
     public TimeTrackingBuilder setStoryPointsToSecondsFactor(int storyPointsToSecondsFactor) {
         this.storyPointsToSecondsFactor = mapIfEmptyOrThrow(this.storyPointsToSecondsFactor, storyPointsToSecondsFactor, "storyPointsToSecondsFactor");
@@ -41,8 +48,8 @@ public class TimeTrackingBuilder {
         return this;
     }
 
-    public TimeTrackingBuilder setRemainingTimeSeconds(int remainingEstimateSeconds) {
-        this.remainingTimeSeconds = mapIfEmptyOrThrow(this.remainingTimeSeconds, remainingEstimateSeconds, "remainingTimeSeconds");
+    public TimeTrackingBuilder setRemainingEstimateSeconds(int remainingEstimateSeconds) {
+        this.remainingEstimateSeconds = mapIfEmptyOrThrow(this.remainingEstimateSeconds, remainingEstimateSeconds, "remainingEstimateSeconds");
         return this;
     }
 
@@ -63,34 +70,36 @@ public class TimeTrackingBuilder {
 
     public TimeTracking build() {
         boolean isTimeTrackingPresent = isTimeTrackingPresent();
-        int plannedTimeSeconds = getPlannedTimeSeconds(isTimeTrackingPresent);
+        int originalEstimateTimeSeconds = getOriginalEstimateTimeSeconds(isTimeTrackingPresent);
         int timeSpentSeconds = getTimeSpentSeconds();
-        int remainingTimeSeconds = calculateRemainingTimeSeconds(plannedTimeSeconds, timeSpentSeconds, isTimeTrackingPresent);
-        int plannedTimeUsageSeconds = calculatePlannedTimeUsageSeconds(remainingTimeSeconds, timeSpentSeconds);
+        int remainingEstimateTimeSeconds = getRemainingEstimateTimeSeconds(originalEstimateTimeSeconds, timeSpentSeconds, isTimeTrackingPresent);
+        int forecastedTimeSpentSeconds = getEstimatedTimeSpent(remainingEstimateTimeSeconds, timeSpentSeconds);
 
         warnIfPlannedTimeFarFromStoryPoint();
         warnIfEitherStoryPointsOrOriginalEstimateIsMissing();
         warnIfTimeTrackingIsMissing(isTimeTrackingPresent);
 
         return new TimeTracking(
-            getStatus(plannedTimeSeconds, plannedTimeUsageSeconds),
-            getCompletionPercentage(plannedTimeSeconds, timeSpentSeconds),
-            calculatePlannedUsagePercentage(plannedTimeSeconds, plannedTimeUsageSeconds),
-            plannedTimeSeconds,
+            getStatus(timeSpentSeconds, originalEstimateTimeSeconds),
+            getUsagePercentage(timeSpentSeconds, originalEstimateTimeSeconds),
+            originalEstimateTimeSeconds,
+            remainingEstimateTimeSeconds,
             timeSpentSeconds,
-            remainingTimeSeconds
+            getEstimatedStatus(workItemStatus, forecastedTimeSpentSeconds, originalEstimateTimeSeconds),
+            getForcastedCompletionPercentage(forecastedTimeSpentSeconds, timeSpentSeconds),
+            getEstimatedUsagePercentage(forecastedTimeSpentSeconds, originalEstimateTimeSeconds)
         );
     }
 
     public TimeTrackingData data() {
         boolean isTimeTrackingPresent = isTimeTrackingPresent();
-        int plannedTimeSeconds = getPlannedTimeSeconds(isTimeTrackingPresent);
+        int plannedTimeSeconds = getOriginalEstimateTimeSeconds(isTimeTrackingPresent);
         int timeSpentSeconds = getTimeSpentSeconds();
 
         return new TimeTrackingData(
             plannedTimeSeconds,
             timeSpentSeconds,
-            calculateRemainingTimeSeconds(plannedTimeSeconds, timeSpentSeconds, isTimeTrackingPresent)
+            getRemainingEstimateTimeSeconds(plannedTimeSeconds, timeSpentSeconds, isTimeTrackingPresent)
         );
     }
 
@@ -108,12 +117,19 @@ public class TimeTrackingBuilder {
         return (float) ((double) plannedTimeSeconds / storyPointsToSecondsFactor);
     }
 
+    private float calculateTimeSecondsToStoryPoints(int timeSeconds) {
+        if (storyPointsToSecondsFactor == null || timeSeconds == 0 || storyPointsToSecondsFactor == 0) {
+            return 0;
+        }
+        return (float) ((double) timeSeconds / storyPointsToSecondsFactor);
+    }
+
     private static float nextSmallerFibonacci(float number) {
-        return MODIFIED_FIBONACCI.stream().filter(fibonacci -> fibonacci < number).reduce((first, second) -> second).orElse(number);
+        return STORY_POINT_FIBONACCI_SERIES.stream().filter(fibonacci -> fibonacci < number).reduce((first, second) -> second).orElse(number);
     }
 
     private static float nextBiggerFibonacci(float number) {
-        return MODIFIED_FIBONACCI.stream().filter(fibonacci -> fibonacci > number).findFirst().orElse(number);
+        return STORY_POINT_FIBONACCI_SERIES.stream().filter(fibonacci -> fibonacci > number).findFirst().orElse(number);
     }
 
     private <T> T mapIfEmptyOrThrow(T field, T value, String name) {
@@ -123,20 +139,23 @@ public class TimeTrackingBuilder {
         return value;
     }
 
-    private int getCompletionPercentage(int plannedTimeSeconds, int timeSpentSeconds) {
+    private Integer getForcastedCompletionPercentage(int forecastedTimeSpentSeconds, int timeSpentSeconds) {
         if (workItemStatus != null && workItemStatus.equals(WorkItemStatus.DONE)) {
-            return 100;
+            return null;
         }
         if (workItemStatus != null && workItemStatus.equals(WorkItemStatus.TODO)) {
             return 0;
         }
-        if (plannedTimeSeconds == 0) {
+        if (forecastedTimeSpentSeconds == 0) {
             return 0;
         }
-        return (int) (((double) timeSpentSeconds / plannedTimeSeconds) * 100);
+        return (int) (((double) timeSpentSeconds / forecastedTimeSpentSeconds) * 100);
     }
 
-    private int getPlannedTimeSeconds(boolean isTimeTrackingPresent) {
+    private int getOriginalEstimateTimeSeconds(boolean isTimeTrackingPresent) {
+        if (workItemType != null && workItemType.equals(WorkItemType.FEATURE)) {
+            return calculateStoryPointSeconds();
+        }
         return plannedTimeSeconds != null && isTimeTrackingPresent ? plannedTimeSeconds : calculateStoryPointSeconds();
     }
 
@@ -173,12 +192,40 @@ public class TimeTrackingBuilder {
 
     private boolean isTimeTrackingPresent() {
      return (plannedTimeSeconds != null && plannedTimeSeconds != 0) ||
-       (remainingTimeSeconds != null && remainingTimeSeconds != 0) ||
+       (remainingEstimateSeconds != null && remainingEstimateSeconds != 0) ||
        (timeSpentSeconds != null && timeSpentSeconds != 0);
     }
 
-    private TrackingStatus getStatus(int plannedTimeSeconds, int plannedTimeUsageSeconds) {
-        int timeDeviationPercentage = calculateTimeDeviationPercentage(plannedTimeSeconds, plannedTimeUsageSeconds);
+    private TrackingStatus getStatus(int timeSpentSeconds, int originalEstimateTimeSeconds) {
+        if (workItemType != null && workItemType.equals(WorkItemType.FEATURE)) {
+            return getTimeBasedStatus(timeSpentSeconds, originalEstimateTimeSeconds);
+        }
+        return getStoryPointsBasedStatus(timeSpentSeconds, originalEstimateTimeSeconds);
+    }
+
+    private TrackingStatus getEstimatedStatus(WorkItemStatus workItemStatus, int forecastedTimeSpentSeconds, int originalEstimateTimeSeconds) {
+        if (workItemStatus != null && workItemStatus.equals(WorkItemStatus.DONE)) {
+            return null;
+        }
+        if (workItemType != null && workItemType.equals(WorkItemType.FEATURE)) {
+            return getTimeBasedStatus(forecastedTimeSpentSeconds, originalEstimateTimeSeconds);
+        }
+        return getStoryPointsBasedStatus(forecastedTimeSpentSeconds, originalEstimateTimeSeconds);
+    }
+
+    private Integer getEstimatedUsagePercentage(int forecastedTimeSpentSeconds, int plannedTimeSeconds) {
+        if (workItemStatus != null && workItemStatus.equals(WorkItemStatus.DONE)) {
+            return null;
+        }
+        return calculatePercentage(forecastedTimeSpentSeconds, plannedTimeSeconds);
+    }
+
+    private static int getEstimatedTimeSpent(int remainingEstimateTimeSeconds, int timeSpentSeconds) {
+        return timeSpentSeconds + remainingEstimateTimeSeconds;
+    }
+
+    private TrackingStatus getTimeBasedStatus(int effectiveTimeSeconds, int originalTimeSeconds) {
+        int timeDeviationPercentage = calculateTimeDeviationPercentage(effectiveTimeSeconds, originalTimeSeconds);
         int allowedTimeDeviationPercentage = this.allowedTimeDeviationPercentage != null ? this.allowedTimeDeviationPercentage : 0;
         if (timeDeviationPercentage > allowedTimeDeviationPercentage) {
             return TrackingStatus.OVERSPENT;
@@ -189,30 +236,45 @@ public class TimeTrackingBuilder {
         return TrackingStatus.ONTRACK;
     }
 
-    private int calculateRemainingTimeSeconds(int plannedTimeSeconds, int timeSpentSeconds, boolean isTimeTrackingPresent) {
+    private TrackingStatus getStoryPointsBasedStatus(int effectiveTimeSeconds, int originalTimeSeconds) {
+        float originalStoryPoints = calculateTimeSecondsToStoryPoints(originalTimeSeconds);
+        float effectiveStoryPoints = calculateTimeSecondsToStoryPoints(effectiveTimeSeconds);
+        return getStoryPointsBasedStatus(originalStoryPoints, effectiveStoryPoints);
+    }
+    private TrackingStatus getStoryPointsBasedStatus(float originalStoryPoints, float effectiveStoryPoints) {
+        float largerFibonacci = nextBiggerFibonacci(effectiveStoryPoints);
+        float smallerFibonacci = nextSmallerFibonacci(effectiveStoryPoints);
+        if (largerFibonacci > originalStoryPoints) {
+            return TrackingStatus.OVERSPENT;
+        }
+        if (smallerFibonacci < originalStoryPoints) {
+            return TrackingStatus.UNDERSPENT;
+        }
+        return TrackingStatus.ONTRACK;
+    }
+
+    private int getRemainingEstimateTimeSeconds(int plannedTimeSeconds, int timeSpentSeconds, boolean isTimeTrackingPresent) {
         if (workItemStatus != null && workItemStatus.equals(WorkItemStatus.DONE)) {
             return 0;
         }
-        return remainingTimeSeconds != null && isTimeTrackingPresent ? remainingTimeSeconds : (plannedTimeSeconds - timeSpentSeconds);
+        return remainingEstimateSeconds != null && isTimeTrackingPresent ? remainingEstimateSeconds : (plannedTimeSeconds - timeSpentSeconds);
     }
 
-    private static int calculatePlannedUsagePercentage(int plannedTimeSeconds, int plannedTimeUsageSeconds) {
-        return calculatePercentage(plannedTimeUsageSeconds, plannedTimeSeconds);
+    private int getUsagePercentage(int timeSpentSeconds, int plannedTimeSeconds) {
+        return calculatePercentage(timeSpentSeconds, plannedTimeSeconds);
     }
 
-    private static int calculatePlannedTimeUsageSeconds(int remainingTimeSeconds, int timeSpentSeconds) {
-        return timeSpentSeconds + remainingTimeSeconds;
-    }
+
 
     /**
-     * Calculate the deviation percentage of the planned time usage.
+     * Calculate the time deviation percentage.
      *
-     * @param plannedTimeSeconds the planned time in seconds
-     * @param plannedTimeUsageSeconds the planned time usage in seconds
+     * @param originalTimeSeconds the original time in seconds
+     * @param effectiveTimeSeconds then effective time in seconds
      * @return the deviation percentage
      */
-    private static int calculateTimeDeviationPercentage(int plannedTimeSeconds, int plannedTimeUsageSeconds) {
-        return calculatePercentage(plannedTimeUsageSeconds, plannedTimeSeconds) - 100;
+    private static int calculateTimeDeviationPercentage(int effectiveTimeSeconds, int originalTimeSeconds) {
+        return calculatePercentage(effectiveTimeSeconds, originalTimeSeconds) - 100;
     }
 
     private static int calculatePercentage(int numerator, int denominator) {
