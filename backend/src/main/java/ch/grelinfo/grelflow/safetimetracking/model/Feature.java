@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import jakarta.validation.constraints.NotNull;
+import java.sql.Time;
 import java.time.OffsetDateTime;
 import java.util.List;
 
@@ -15,7 +16,6 @@ public record Feature(
     @NotNull OffsetDateTime recordedTimestamp,
     String name,
     @NotNull WorkItemStatus status,
-    @NotNull BudgetTracking budgetTracking,
     @NotNull TimeTracking timeTracking,
     @JsonInclude(value= Include.NON_EMPTY)
     List<WorkItem> workItems,

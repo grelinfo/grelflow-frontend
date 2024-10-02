@@ -18,7 +18,7 @@ export class TrackingStatusComponent {
   /** Set the status. */
   @Input() type: 'ontrack' | 'overspent' | 'underspent' = 'ontrack';
   /** Enable or disable the message. */
-  @Input() showMessage = true;
+  @Input() showMessage = false;
 
   /** @docs-private */
   get _iconClass() {

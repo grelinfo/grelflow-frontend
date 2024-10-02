@@ -43,7 +43,7 @@ export class FeatureListComponent implements OnInit {
   });
 
   dataSource = this.featureStore.entities;
-  displayedColumns: string[] = ['id', 'name', 'status',  'budgetTrackingStatus', 'budgetUsagePercentage', 'timeTrackingStatus', 'completionPercentage', 'actions', 'recordedTimestamp'];
+  displayedColumns: string[] = ['id', 'name', 'status', 'timeTrackingOriginalEstimate', 'timeTrackingActual', 'timeTrackingEstimate', 'completion','recordedTimestamp', 'actions'];
 
 
   remove(id: string):void {

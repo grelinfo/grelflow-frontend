@@ -1,8 +1,12 @@
 package ch.grelinfo.grelflow.safetimetracking.model;
 
-
+/**
+ * Time tracking data.
+ *
+ * @see TimeTrackingDataInterface
+ */
 public record TimeTrackingData(
-    int plannedTimeSeconds,
-    int spentTimeSeconds,
-    int remainingTimeSeconds
+    int originalEstimateSeconds,
+    int remainingEstimateSeconds,
+    int timeSpentSeconds
 ) implements TimeTrackingDataInterface {}
