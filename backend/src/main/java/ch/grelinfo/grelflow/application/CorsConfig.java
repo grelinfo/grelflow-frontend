@@ -22,7 +22,6 @@ public class CorsConfig {
 
     @Bean
     CorsWebFilter corsWebFilter() {
-        System.out.println("allowedOrigins: " + allowedOrigins);
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(allowedOrigins);
         config.setAllowedHeaders(allowedHeaders);

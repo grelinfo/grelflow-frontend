@@ -18,7 +18,7 @@ public class TimeTrackingBuilder {
     private Integer allowedTimeDeviationPercentage;
     private WorkItemStatus workItemStatus;
     private Float storyPoints;
-    private Integer plannedTimeSeconds;
+    private Integer originalEstimateSeconds;
     private Integer remainingEstimateSeconds;
     private Integer timeSpentSeconds;
     private Consumer<String> warningConsumer;
@@ -43,8 +43,8 @@ public class TimeTrackingBuilder {
         return this;
     }
 
-    public TimeTrackingBuilder setPlannedTimeSeconds(int plannedTimeSeconds) {
-        this.plannedTimeSeconds = mapIfEmptyOrThrow(this.plannedTimeSeconds, plannedTimeSeconds, "plannedTimeSeconds");
+    public TimeTrackingBuilder setOriginalEstimateSeconds(int originalEstimateSeconds) {
+        this.originalEstimateSeconds = mapIfEmptyOrThrow(this.originalEstimateSeconds, originalEstimateSeconds, "originalEstimateSeconds");
         return this;
     }
 
@@ -86,20 +86,20 @@ public class TimeTrackingBuilder {
             remainingEstimateTimeSeconds,
             timeSpentSeconds,
             getEstimatedStatus(workItemStatus, forecastedTimeSpentSeconds, originalEstimateTimeSeconds),
-            getForcastedCompletionPercentage(forecastedTimeSpentSeconds, timeSpentSeconds),
+            getEstimatedCompletionPercentage(forecastedTimeSpentSeconds, timeSpentSeconds),
             getEstimatedUsagePercentage(forecastedTimeSpentSeconds, originalEstimateTimeSeconds)
         );
     }
 
     public TimeTrackingData data() {
         boolean isTimeTrackingPresent = isTimeTrackingPresent();
-        int plannedTimeSeconds = getOriginalEstimateTimeSeconds(isTimeTrackingPresent);
+        int originalEstimateSeconds = getOriginalEstimateTimeSeconds(isTimeTrackingPresent);
         int timeSpentSeconds = getTimeSpentSeconds();
 
         return new TimeTrackingData(
-            plannedTimeSeconds,
-            timeSpentSeconds,
-            getRemainingEstimateTimeSeconds(plannedTimeSeconds, timeSpentSeconds, isTimeTrackingPresent)
+            originalEstimateSeconds,
+            getRemainingEstimateTimeSeconds(originalEstimateSeconds, timeSpentSeconds, isTimeTrackingPresent),
+            timeSpentSeconds
         );
     }
 
@@ -110,11 +110,11 @@ public class TimeTrackingBuilder {
         return (int) (storyPoints * storyPointsToSecondsFactor);
     }
 
-    private float calculatePlannedTimeToStoryPoints() {
-        if (storyPointsToSecondsFactor == null || plannedTimeSeconds == null || storyPointsToSecondsFactor == 0 || plannedTimeSeconds == 0) {
+    private float calculateOriginalEstimateSecondsToStoryPoints() {
+        if (storyPointsToSecondsFactor == null || originalEstimateSeconds == null || storyPointsToSecondsFactor == 0 || originalEstimateSeconds == 0) {
             return 0;
         }
-        return (float) ((double) plannedTimeSeconds / storyPointsToSecondsFactor);
+        return (float) ((double) originalEstimateSeconds / storyPointsToSecondsFactor);
     }
 
     private float calculateTimeSecondsToStoryPoints(int timeSeconds) {
@@ -139,7 +139,7 @@ public class TimeTrackingBuilder {
         return value;
     }
 
-    private Integer getForcastedCompletionPercentage(int forecastedTimeSpentSeconds, int timeSpentSeconds) {
+    private Integer getEstimatedCompletionPercentage(int forecastedTimeSpentSeconds, int timeSpentSeconds) {
         if (workItemStatus != null && workItemStatus.equals(WorkItemStatus.DONE)) {
             return null;
         }
@@ -156,14 +156,14 @@ public class TimeTrackingBuilder {
         if (workItemType != null && workItemType.equals(WorkItemType.FEATURE)) {
             return calculateStoryPointSeconds();
         }
-        return plannedTimeSeconds != null && isTimeTrackingPresent ? plannedTimeSeconds : calculateStoryPointSeconds();
+        return originalEstimateSeconds != null && isTimeTrackingPresent ? originalEstimateSeconds : calculateStoryPointSeconds();
     }
 
     private void warnIfPlannedTimeFarFromStoryPoint() {
-        if (warningConsumer == null || storyPoints == null || plannedTimeSeconds == null) {
+        if (warningConsumer == null || storyPoints == null || originalEstimateSeconds == null) {
             return;
         }
-        float plannedTimeToStoryPoints = calculatePlannedTimeToStoryPoints();
+        float plannedTimeToStoryPoints = calculateOriginalEstimateSecondsToStoryPoints();
         float largerFibonacci = nextBiggerFibonacci(storyPoints);
         float smallerFibonacci = nextSmallerFibonacci(storyPoints);
 
@@ -175,7 +175,7 @@ public class TimeTrackingBuilder {
         }
     }
     private void warnIfEitherStoryPointsOrOriginalEstimateIsMissing() {
-        if (warningConsumer != null && storyPoints == null && plannedTimeSeconds == null) {
+        if (warningConsumer != null && storyPoints == null && originalEstimateSeconds == null) {
             warningConsumer.accept("Story points and original estimate are missing.");
         }
     }
@@ -191,7 +191,7 @@ public class TimeTrackingBuilder {
     }
 
     private boolean isTimeTrackingPresent() {
-     return (plannedTimeSeconds != null && plannedTimeSeconds != 0) ||
+     return (originalEstimateSeconds != null && originalEstimateSeconds != 0) ||
        (remainingEstimateSeconds != null && remainingEstimateSeconds != 0) ||
        (timeSpentSeconds != null && timeSpentSeconds != 0);
     }
@@ -253,11 +253,11 @@ public class TimeTrackingBuilder {
         return TrackingStatus.ONTRACK;
     }
 
-    private int getRemainingEstimateTimeSeconds(int plannedTimeSeconds, int timeSpentSeconds, boolean isTimeTrackingPresent) {
+    private int getRemainingEstimateTimeSeconds(int originalEstimateSeconds, int timeSpentSeconds, boolean isTimeTrackingPresent) {
         if (workItemStatus != null && workItemStatus.equals(WorkItemStatus.DONE)) {
             return 0;
         }
-        return remainingEstimateSeconds != null && isTimeTrackingPresent ? remainingEstimateSeconds : (plannedTimeSeconds - timeSpentSeconds);
+        return remainingEstimateSeconds != null && isTimeTrackingPresent ? remainingEstimateSeconds : (originalEstimateSeconds - timeSpentSeconds);
     }
 
     private int getUsagePercentage(int timeSpentSeconds, int plannedTimeSeconds) {
