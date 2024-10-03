@@ -106,7 +106,7 @@ public final class SafeTimeTrackingIssueMapper {
 
         IssueMapper.getTimeTrackingField(workItemIssue).ifPresent(jiraTimeTrackingField -> {
             timeTrackingBuilder
-                .setPlannedTimeSeconds(jiraTimeTrackingField.originalEstimateSeconds())
+                .setOriginalEstimateSeconds(jiraTimeTrackingField.originalEstimateSeconds())
                 .setRemainingEstimateSeconds(jiraTimeTrackingField.remainingEstimateSeconds())
                 .setTimeSpentSeconds(jiraTimeTrackingField.timeSpentSeconds());
         });
@@ -155,8 +155,8 @@ public final class SafeTimeTrackingIssueMapper {
         TimeTrackingDataInterface timeTrackingData1, TimeTrackingDataInterface timeTrackingData2) {
         return new TimeTrackingData(
             timeTrackingData1.originalEstimateSeconds() + timeTrackingData2.originalEstimateSeconds(),
-            timeTrackingData1.timeSpentSeconds() + timeTrackingData2.timeSpentSeconds(),
-            timeTrackingData1.remainingEstimateSeconds() + timeTrackingData2.remainingEstimateSeconds()
+            timeTrackingData1.remainingEstimateSeconds() + timeTrackingData2.remainingEstimateSeconds(),
+            timeTrackingData1.timeSpentSeconds() + timeTrackingData2.timeSpentSeconds()
         );
     }
 

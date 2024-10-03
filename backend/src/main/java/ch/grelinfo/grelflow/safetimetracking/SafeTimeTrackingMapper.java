@@ -105,7 +105,7 @@ public final class SafeTimeTrackingMapper {
 
         IssueMapper.getTimeTrackingField(workItemIssue).ifPresent(jiraTimeTrackingField -> {
             timeTrackingBuilder
-                .setPlannedTimeSeconds(jiraTimeTrackingField.originalEstimateSeconds())
+                .setOriginalEstimateSeconds(jiraTimeTrackingField.originalEstimateSeconds())
                 .setRemainingEstimateSeconds(jiraTimeTrackingField.remainingEstimateSeconds())
                 .setTimeSpentSeconds(jiraTimeTrackingField.timeSpentSeconds());
         });
@@ -119,7 +119,7 @@ public final class SafeTimeTrackingMapper {
             .setWorkItemStatus(featureStatus)
             .setRemainingEstimateSeconds(workItemsTimeTracking.remainingEstimateSeconds())
             .setTimeSpentSeconds(workItemsTimeTracking.timeSpentSeconds())
-            .setPlannedTimeSeconds(workItemsTimeTracking.originalEstimateSeconds());
+            .setOriginalEstimateSeconds(workItemsTimeTracking.originalEstimateSeconds());
 
         IssueMapper.getStoryPoints(featureIssue).ifPresent(timeTrackingBuilder::setStoryPoints);
 
@@ -153,8 +153,8 @@ public final class SafeTimeTrackingMapper {
         TimeTrackingDataInterface timeTrackingData1, TimeTrackingDataInterface timeTrackingData2) {
         return new TimeTrackingData(
             timeTrackingData1.originalEstimateSeconds() + timeTrackingData2.originalEstimateSeconds(),
-            timeTrackingData1.timeSpentSeconds() + timeTrackingData2.timeSpentSeconds(),
-            timeTrackingData1.remainingEstimateSeconds() + timeTrackingData2.remainingEstimateSeconds()
+            timeTrackingData1.remainingEstimateSeconds() + timeTrackingData2.remainingEstimateSeconds(),
+            timeTrackingData1.timeSpentSeconds() + timeTrackingData2.timeSpentSeconds()
         );
     }
 
